@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<launch>
+
+<include file="$(find ssd_slam)/launch/ABot.launch" />
+
+<include file="$(find ssd_slam)/launch/joystick.launch" />
+
+</launch>

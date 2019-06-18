@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<launch>
+
+<include file="$(find ssd_slam)/launch/empty_world.launch" >
+  <arg name="world_name" value="$(find ssd_slam)/maps/new_model.world"/>
+</include>
+
+</launch>
