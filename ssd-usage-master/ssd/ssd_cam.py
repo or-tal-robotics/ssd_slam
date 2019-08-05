@@ -10,6 +10,8 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 import rospy
 from sensor_msgs.msg import Image
+from beginner_tutorials.msg import Num
+
 
 slim = tf.contrib.slim
 
@@ -19,7 +21,7 @@ import matplotlib.image as mpimg
 
 import sys
 sys.path.append('../')
-sys.path.insert(0, '/home/lab/Downloads/ssd-usage-master/ssd')
+sys.path.insert(0, '/home/elbazam/catkin_ws/src/ssd_slam/ssd-usage-master/ssd')
 #from ssd 
 import ssd_wrapper
 # TensorFlow session: grow memory when needed. TF, DO NOT USE ALL MY GPU MEMORY!!!
@@ -54,10 +56,14 @@ bridge = CvBridge()
 rospy.init_node('img', anonymous = True)
 img_sub = rospy.Subscriber('camera/image_raw/', Image, img_callback)
 ros_img = rospy.wait_for_message('camera/image_raw/', Image)
+x_mm = rospy.Publisher('x_scope',Num)
+xs = Num()
+
 
 while not rospy.is_shutdown():
     #ret_val, img = cam.read()
     global cv_img
+    flag = 0
     img = cv_img
     img = cv2.resize(img, (300, 300),interpolation = cv2.INTER_AREA)
     rclasses, rscores, rbboxes =  ssd.process_image(img)
@@ -71,6 +77,12 @@ while not rospy.is_shutdown():
             xmin = int(rbboxes[i, 1] * width)
             ymax = int(rbboxes[i, 2] * height)
             xmax = int(rbboxes[i, 3] * width)
+            flag = 1
+            xs.x_min = xmin
+            xs.x_max = xmax
+            xs.obj = cls_id
+            x_mm.publish(xs)
+            
         
             img = cv2.rectangle(img,(xmin,ymin),(xmax,ymax),colors[cls_id],2)
             font                   = cv2.FONT_HERSHEY_SIMPLEX
@@ -85,6 +97,12 @@ while not rospy.is_shutdown():
                     fontScale,
                     fontColor,
                     lineType)
+    
+    if flag == 0:    
+        xs.x_min = -1
+        xs.x_max = -1
+        xs.obj = cls_id
+        x_mm.publish(xs)
            
     cv2.imshow('ssd300', img)
 
